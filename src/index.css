@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+:root {
+  --scada-bg: #0b1320;
+  --scada-panel: #111c2e;
+  --scada-border: #223552;
+  --scada-running: #22c55e;
+  --scada-stopped: #64748b;
+  --scada-fault: #ef4444;
+  --scada-starting: #2563eb;
+}
+
+@keyframes pipe-flow {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pipe-flow-reverse {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 24;
+  }
+}
+
+@keyframes alarm-flash {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes fan-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes locate-hold {
+  0%, 88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-pipe-flow {
+  stroke-dasharray: 8 4;
+  animation: pipe-flow 0.85s linear infinite;
+}
+
+.animate-pipe-flow-reverse {
+  stroke-dasharray: 8 4;
+  animation: pipe-flow-reverse 0.85s linear infinite;
+}
+
+.animate-alarm-flash {
+  animation: alarm-flash 0.9s ease-in-out infinite;
+}
+
+.animate-fan-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fan-spin 1.5s linear infinite;
+}
+
+.animate-fan-spin-slow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fan-spin 3.2s linear infinite;
+}
+
+/* 2-second steady light-yellow locate bounding box */
+.animate-locate-hold {
+  animation: locate-hold 2s ease-out forwards;
+}
+
+/* Custom thin scrollbars for SCADA tables & drawers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d1626;
+}
+::-webkit-scrollbar-thumb {
+  background: #273c5e;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a5785;
+}
