@@ -27,6 +27,12 @@ const ACCOUNTS: AccountDef[] = [
     role: 'Administrator',
   },
   {
+    username: 'operator',
+    displayName: 'Operator',
+    defaultPassword: '123456',
+    role: 'Administrator',
+  },
+  {
     username: 'User',
     displayName: 'Operator User',
     defaultPassword: 'COHR2401',
