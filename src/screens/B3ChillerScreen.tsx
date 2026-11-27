@@ -6,6 +6,7 @@ import {
   PipeArrow,
   PipeSensorBadge,
   PipeTee,
+  SvgLocalOverlay,
   WinccPipeNetwork,
   WinccPumpSymbol,
   WinccValveSymbol,
@@ -29,6 +30,7 @@ const AirCooledChillerSymbol: React.FC<{
 }> = ({ x, y, unit, shortName, onClick }) => {
   const isRun = unit.status === 'RUNNING';
   const isTransit = unit.status === 'STARTING' || unit.status === 'STOPPING';
+  const isLocal = unit.remote === false;
   const frameStroke = unit.faulted ? '#dc2626' : isRun ? '#16a34a' : isTransit ? '#2563eb' : '#334155';
   const badgeBg = unit.faulted ? '#dc2626' : isRun ? '#16a34a' : isTransit ? '#2563eb' : '#64748b';
   const ambientAir = unit.telemetry.condEWT ?? 31.0;
@@ -37,8 +39,8 @@ const AirCooledChillerSymbol: React.FC<{
     <g
       data-scada-tag={unit.tag}
       transform={`translate(${x}, ${y})`}
-      onClick={onClick}
-      className="cursor-pointer group"
+      onClick={isLocal ? undefined : onClick}
+      className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
     >
       {/* Heat rejection upward airflow streaks above top condenser fans when running */}
       {isRun && (
@@ -121,6 +123,7 @@ const AirCooledChillerSymbol: React.FC<{
       <text x={118} y={139.5} textAnchor="middle" fill="#38bdf8" fontSize="9.5" fontFamily="monospace" fontWeight="900">
         {shortName} (AIR)
       </text>
+      {isLocal && <SvgLocalOverlay x={10} y={14} width={216} height={104} rx={5} />}
     </g>
   );
 };

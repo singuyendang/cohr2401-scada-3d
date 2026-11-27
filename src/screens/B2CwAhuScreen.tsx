@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useB5Store } from '../store/b5Store.ts';
-import { PipeArrow, PipeTee, WinccPipeNetwork, WinccValveSymbol } from '../components/scada/PidPrimitives.tsx';
+import { PipeArrow, PipeTee, SvgLocalOverlay, WinccPipeNetwork, WinccValveSymbol } from '../components/scada/PidPrimitives.tsx';
 import { StatusLegend } from '../components/scada/StatusLegend.tsx';
 import { IndustrialFanSvg } from '../components/scada/IndustrialFanIcon.tsx';
 
@@ -94,14 +94,19 @@ export const B2CwAhuScreen: React.FC = () => {
     const hwV = cfg.hwValveTag ? plant.valves[cfg.hwValveTag] : undefined;
     const isRun = unit.status === 'RUNNING';
     const isTransit = unit.status === 'STARTING' || unit.status === 'STOPPING';
+    const isLocal = unit.remote === false;
 
     return (
       <g
         key={tag}
         data-scada-tag={tag}
         transform={`translate(${x}, ${y})`}
-        onClick={() => openFaceplate(isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint', tag, `${isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint'} · ${code}`)}
-        className="cursor-pointer group"
+        onClick={
+          isLocal
+            ? undefined
+            : () => openFaceplate(isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint', tag, `${isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint'} · ${code}`)
+        }
+        className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
       >
         <rect
           x={-44}
@@ -117,6 +122,7 @@ export const B2CwAhuScreen: React.FC = () => {
         />
         <image href={isPau ? '/scada/pau.png' : '/scada/ahu.png'} x={-34} y={-24} width={64} height={46} preserveAspectRatio="xMidYMid meet" />
         <IndustrialFanSvg x={33} y={-18} radius={10.5} variant="hvac" status={unit.status} faulted={unit.faulted} isBadge />
+        {isLocal && <SvgLocalOverlay x={-44} y={-28} width={88} height={54} rx={4} />}
         <text x={0} y={36} textAnchor="middle" fill="#0f172a" fontSize="8" fontFamily="monospace" fontWeight="900">
           {code} · {unit.frequencyHz.toFixed(0)}Hz
         </text>
@@ -306,8 +312,8 @@ export const B2CwAhuScreen: React.FC = () => {
                 <g
                   data-scada-tag={f.tag}
                   transform={`translate(${f.x}, 488)`}
-                  onClick={() => openFaceplate('Fpl_DOL', f.tag, `Fpl_DOL · ${f.tag}`)}
-                  className="cursor-pointer group"
+                  onClick={unit?.remote === false ? undefined : () => openFaceplate('Fpl_DOL', f.tag, `Fpl_DOL · ${f.tag}`)}
+                  className={unit?.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
                 >
                   <rect
                     x={-34}
@@ -333,6 +339,7 @@ export const B2CwAhuScreen: React.FC = () => {
                       isBadge
                     />
                   )}
+                  {unit?.remote === false && <SvgLocalOverlay x={-34} y={-22} width={68} height={44} rx={4} />}
                   <text x={0} y={33} textAnchor="middle" fill="#0f172a" fontSize="7.5" fontFamily="monospace" fontWeight="900">
                     {f.code}
                   </text>

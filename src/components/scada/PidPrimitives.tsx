@@ -2,6 +2,77 @@ import React from 'react';
 import type { AnalogSensor, EquipmentUnit, ValveUnit } from '../../types/scada.ts';
 import { sensorAlarmColor, statusColor, valveColor } from './scadaColors.ts';
 
+/**
+ * Refined WinCC "Local" Lock Overlay for SVG Equipment Symbols.
+ * Automatically scales fontSize to fit each equipment's bounding box proportionally,
+ * blocks all clicks, and stays sleek & legible without looking heavy or crude.
+ */
+export const SvgLocalOverlay: React.FC<{
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rx?: number;
+}> = ({ x, y, width, height, rx = 4 }) => {
+  const fontSize = Math.max(9.5, Math.min(26, Math.min(width * 0.27, height * 0.5)));
+  const cx = x + width / 2;
+  const cy = y + height / 2 + fontSize * 0.34;
+  return (
+    <g
+      onClick={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+      className="cursor-not-allowed select-none"
+    >
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        rx={rx}
+        fill="#0f172a"
+        fillOpacity={0.56}
+        stroke="#f59e0b"
+        strokeWidth={1.6}
+      />
+      <text
+        x={cx}
+        y={cy}
+        textAnchor="middle"
+        fill="#fde047"
+        stroke="#0f172a"
+        strokeWidth={Math.max(1.8, fontSize * 0.17)}
+        paintOrder="stroke"
+        fontSize={fontSize}
+        fontFamily="monospace"
+        fontWeight="900"
+        letterSpacing="0.06em"
+      >
+        Local
+      </text>
+    </g>
+  );
+};
+
+/**
+ * Refined WinCC "Local" Lock Overlay for HTML Equipment Cards (Exhaust fans, FCUs, Aux fans).
+ */
+export const HtmlLocalOverlay: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) => {
+  const textCls = size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-lg' : 'text-sm';
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+      className="absolute inset-0 z-10 rounded-[inherit] bg-slate-900/62 border-2 border-amber-400/90 backdrop-blur-[1px] flex items-center justify-center cursor-not-allowed select-none"
+    >
+      <span
+        className={`${textCls} font-mono font-black tracking-wider text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]`}
+      >
+        Local
+      </span>
+    </div>
+  );
+};
+
 export interface PipeSegment {
   d: string;
   flowing: boolean;
@@ -323,11 +394,17 @@ export const WinccPumpSymbol: React.FC<{
   onClick: () => void;
 }> = ({ x, y, unit, shortTag, direction = 'right', onClick }) => {
   const isRunning = unit.status === 'RUNNING';
+  const isLocal = unit.remote === false;
   const fill = statusColor(unit.status);
   const bodyGrad = isRunning ? '#86efac' : unit.faulted ? '#fca5a5' : '#e2e8f0';
 
   return (
-    <g data-scada-tag={unit.tag} transform={`translate(${x}, ${y})`} onClick={onClick} className="cursor-pointer group">
+    <g
+      data-scada-tag={unit.tag}
+      transform={`translate(${x}, ${y})`}
+      onClick={isLocal ? undefined : onClick}
+      className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
+    >
       <text x={0} y={-20} textAnchor="middle" fill="#0f172a" fontSize="8.5" fontFamily="monospace" fontWeight="800">
         {shortTag}
       </text>
@@ -378,6 +455,7 @@ export const WinccPumpSymbol: React.FC<{
           </text>
         )}
       </g>
+      {isLocal && <SvgLocalOverlay x={-38} y={-17} width={78} height={49} rx={4} />}
     </g>
   );
 };
@@ -459,12 +537,13 @@ export const WinccChillerSymbol: React.FC<{
 }> = ({ x, y, unit, displayCode, subtitle, onClickControl, onClickData }) => {
   const isRunning = unit.status === 'RUNNING';
   const isFault = unit.faulted;
+  const isLocal = unit.remote === false;
   const col = statusColor(unit.status);
   const vesselFill = isRunning ? '#bbf7d0' : isFault ? '#fecaca' : '#e2e8f0';
 
   return (
     <g data-scada-tag={unit.tag} transform={`translate(${x}, ${y})`}>
-      <g onClick={onClickControl} className="cursor-pointer group">
+      <g onClick={isLocal ? undefined : onClickControl} className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}>
         {/* Base support legs */}
         <rect x={8} y={44} width={8} height={8} fill="#475569" stroke="#0f172a" strokeWidth={1} />
         <rect x={76} y={44} width={8} height={8} fill="#475569" stroke="#0f172a" strokeWidth={1} />
@@ -512,6 +591,7 @@ export const WinccChillerSymbol: React.FC<{
         <text x={46} y={56} textAnchor="middle" fill="#0f172a" fontSize="8" fontFamily="monospace" fontWeight="800">
           {subtitle ? `${subtitle} · ${unit.loadPct.toFixed(0)}%` : `${unit.loadPct.toFixed(0)}% FLA`}
         </text>
+        {isLocal && <SvgLocalOverlay x={3} y={-3} width={86} height={54} rx={5} />}
       </g>
 
       <g onClick={onClickData} className="cursor-pointer">
@@ -541,6 +621,7 @@ export const WinccCoolingTowerSymbol: React.FC<{
 }> = ({ x, y, index, fan, inValve, outValve, onClickFan, onClickInValve, onClickOutValve, onClickPid }) => {
   const isRunning = fan.status === 'RUNNING';
   const isFault = fan.faulted;
+  const isLocal = fan.remote === false;
   const bodyTint = isRunning ? '#bbf7d0' : isFault ? '#fecaca' : '#d8dee9';
 
   return (
@@ -556,7 +637,11 @@ export const WinccCoolingTowerSymbol: React.FC<{
         onClick={onClickInValve}
       />
 
-      <g data-scada-tag={fan.tag} onClick={onClickFan} className="cursor-pointer group">
+      <g
+        data-scada-tag={fan.tag}
+        onClick={isLocal ? undefined : onClickFan}
+        className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
+      >
         <rect x={16} y={-8} width={24} height={12} rx={2} fill="#cbd5e1" stroke="#0f172a" strokeWidth={1.2} />
         <g transform="translate(28, -2)">
           <g className={isRunning ? 'animate-fan-spin' : ''}>
@@ -599,6 +684,7 @@ export const WinccCoolingTowerSymbol: React.FC<{
         <text x={28} y={76} textAnchor="middle" fill="#0f172a" fontSize="10" fontFamily="monospace" fontWeight="900">
           CT{index}
         </text>
+        {isLocal && <SvgLocalOverlay x={2} y={-8} width={52} height={73} rx={4} />}
       </g>
 
       <WinccValveSymbol

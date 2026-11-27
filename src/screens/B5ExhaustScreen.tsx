@@ -1,10 +1,12 @@
 import React from 'react';
 import { useB5Store } from '../store/b5Store.ts';
 import {
+  HtmlLocalOverlay,
   PidIconButton,
   PipeArrow,
   PipeSensorBadge,
   PipeTee,
+  SvgLocalOverlay,
   WinccPipeNetwork,
 } from '../components/scada/PidPrimitives.tsx';
 import { StatusLegend } from '../components/scada/StatusLegend.tsx';
@@ -37,11 +39,16 @@ export const B5ExhaustScreen: React.FC = () => {
   ) => {
     const unit = plant.equipment[tag];
     const isRun = unit.status === 'RUNNING';
+    const isLocal = unit.remote === false;
     const col = statusColor(unit.status);
 
     return (
       <g key={tag} transform={`translate(${x}, ${y})`}>
-        <g data-scada-tag={tag} onClick={() => openFaceplate('Fpl_VFD', tag, `Fpl_VFD · ${tag}`)} className="cursor-pointer group">
+        <g
+          data-scada-tag={tag}
+          onClick={isLocal ? undefined : () => openFaceplate('Fpl_VFD', tag, `Fpl_VFD · ${tag}`)}
+          className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
+        >
           <text x={0} y={-24} textAnchor="middle" fill="#0f172a" fontSize="9.5" fontFamily="monospace" fontWeight="900">
             {shortName}
           </text>
@@ -63,6 +70,7 @@ export const B5ExhaustScreen: React.FC = () => {
             </text>
             <text x={66} y={10} fill="#0f172a" fontSize="8" fontFamily="monospace" fontWeight="800">Hz</text>
           </g>
+          {isLocal && <SvgLocalOverlay x={-38} y={-20} width={78} height={56} rx={4} />}
         </g>
 
         <PidIconButton
@@ -248,13 +256,16 @@ export const B5ExhaustScreen: React.FC = () => {
             const u = plant.equipment[tag];
             const isRun = u.status === 'RUNNING';
             const isTransit = u.status === 'STARTING' || u.status === 'STOPPING';
+            const isLocal = u.remote === false;
             const fpl = u.kind === 'vfd' ? 'Fpl_VFD' : 'Fpl_DOL';
             return (
               <button
                 key={tag}
                 data-scada-tag={tag}
-                onClick={() => openFaceplate(fpl, tag, `${fpl} · ${tag}`)}
-                className={`p-2.5 rounded-md border text-left cursor-pointer transition hover:brightness-125 flex items-center gap-2.5 ${
+                onClick={isLocal ? undefined : () => openFaceplate(fpl, tag, `${fpl} · ${tag}`)}
+                className={`relative p-2.5 rounded-md border text-left transition flex items-center gap-2.5 ${
+                  isLocal ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-125'
+                } ${
                   u.faulted
                     ? 'bg-red-950/60 border-red-500 animate-alarm-flash'
                     : isRun
@@ -264,6 +275,7 @@ export const B5ExhaustScreen: React.FC = () => {
                     : 'bg-slate-900 border-slate-600'
                 }`}
               >
+                {isLocal && <HtmlLocalOverlay size="md" />}
                 <IndustrialFanTileIcon variant="exhaust" status={u.status} faulted={u.faulted} />
 
                 <div className="min-w-0 flex-1">

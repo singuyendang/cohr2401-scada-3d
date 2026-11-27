@@ -1,5 +1,6 @@
 import React from 'react';
 import type { AnalogSensor, EquipmentUnit, PowerMeter, ValveUnit } from '../../types/scada.ts';
+import { SvgLocalOverlay } from './PidPrimitives.tsx';
 
 /**
  * Standardized Read-Only SCADA Equipment Icon Tiles for ALL 10 Architectural Floor Overviews
@@ -300,6 +301,7 @@ export const FloorEquipmentIconTile: React.FC<{
 }> = ({ x, y, w = 88, h = 48, name, eq, roomTempSensor, extra, onDoubleClick }) => {
   const family = detectFamily(eq);
   const p = statePalette(eq);
+  const isLocal = eq?.remote === false;
   const metric = computeEssentialMetric(eq, roomTempSensor, extra);
   const compactHorizontal = h < 38;
   const footerLabel = metric ? `${name} · ${metric}` : name;
@@ -323,6 +325,7 @@ export const FloorEquipmentIconTile: React.FC<{
             {metric}
           </text>
         )}
+        {isLocal && <SvgLocalOverlay x={1} y={1} width={w - 2} height={h - 2} rx={3} />}
       </g>
     );
   }
@@ -359,6 +362,7 @@ export const FloorEquipmentIconTile: React.FC<{
       >
         {footerLabel}
       </text>
+      {isLocal && <SvgLocalOverlay x={1} y={1} width={w - 2} height={bodyH - 1} rx={3} />}
     </g>
   );
 };

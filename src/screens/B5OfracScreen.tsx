@@ -4,6 +4,7 @@ import {
   PipeArrow,
   PipeSensorBadge,
   PipeTee,
+  SvgLocalOverlay,
   WinccPipeNetwork,
   WinccPumpSymbol,
 } from '../components/scada/PidPrimitives.tsx';
@@ -170,8 +171,8 @@ export const B5OfracScreen: React.FC = () => {
 
                 <g
                   data-scada-tag={unit.tag}
-                  onClick={() => openFaceplate('Fpl_AC', unit.tag, `Fpl_AC · ${unit.tag} (${code})`)}
-                  className="cursor-pointer group"
+                  onClick={unit.remote === false ? undefined : () => openFaceplate('Fpl_AC', unit.tag, `Fpl_AC · ${unit.tag} (${code})`)}
+                  className={unit.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
                 >
                   <rect
                     x={-4}
@@ -197,6 +198,7 @@ export const B5OfracScreen: React.FC = () => {
                   <text x={64} y={3.5} textAnchor="middle" fill="#ffffff" fontSize="8" fontFamily="monospace" fontWeight="900">
                     {unit.mode === 'AUTO' ? 'A' : 'M'}
                   </text>
+                  {unit.remote === false && <SvgLocalOverlay x={-4} y={-32} width={92} height={64} rx={4} />}
                 </g>
 
                 <g
@@ -266,12 +268,13 @@ export const B5OfracScreen: React.FC = () => {
           ].map((d) => {
             const unit = plant.equipment[d.tag];
             const isRun = unit.status === 'RUNNING';
+            const isLocal = unit.remote === false;
             return (
               <g
                 key={d.tag}
                 transform={`translate(${d.x}, ${d.y})`}
-                onClick={() => openFaceplate('Fpl_DOL', d.tag, `Fpl_DOL · ${d.tag}`)}
-                className="cursor-pointer group"
+                onClick={isLocal ? undefined : () => openFaceplate('Fpl_DOL', d.tag, `Fpl_DOL · ${d.tag}`)}
+                className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
               >
                 <rect
                   x={-26}
@@ -289,6 +292,7 @@ export const B5OfracScreen: React.FC = () => {
                 <text x={0} y={44} textAnchor="middle" fill="#0f172a" fontSize="8" fontFamily="monospace" fontWeight="900">
                   {d.code}
                 </text>
+                {isLocal && <SvgLocalOverlay x={-26} y={-36} width={52} height={72} rx={3} />}
               </g>
             );
           })}

@@ -3,6 +3,7 @@ import { useB5Store } from '../store/b5Store.ts';
 import {
   PipeArrow,
   PipeSensorBadge,
+  SvgLocalOverlay,
   WinccPipeNetwork,
   WinccValveSymbol,
 } from '../components/scada/PidPrimitives.tsx';
@@ -79,8 +80,8 @@ export const B2AirFcuScreen: React.FC = () => {
         <g
           data-scada-tag={item.tag}
           transform={`translate(${item.x - 66}, ${y + 6})`}
-          onClick={() => openFaceplate('Fpl_DOL', item.tag, `Fpl_DOL · ${item.code}`)}
-          className="cursor-pointer group"
+          onClick={eq.remote === false ? undefined : () => openFaceplate('Fpl_DOL', item.tag, `Fpl_DOL · ${item.code}`)}
+          className={eq.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
         >
           <rect
             x={0}
@@ -114,6 +115,7 @@ export const B2AirFcuScreen: React.FC = () => {
           <text x={66} y={87} textAnchor="middle" fill="#0f172a" fontSize="8.5" fontFamily="monospace" fontWeight="900">
             {item.code}
           </text>
+          {eq.remote === false && <SvgLocalOverlay x={0} y={0} width={132} height={74} rx={4} />}
         </g>
 
         <PipeSensorBadge

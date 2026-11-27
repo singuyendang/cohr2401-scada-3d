@@ -59,6 +59,7 @@ interface B5Store {
 
   // Equipment, Valve, PID, Sensor, Demand, AHU actions
   setEquipmentMode: (tag: string, mode: ControlMode) => void;
+  setEquipmentRemote: (tag: string, remote: boolean) => void;
   commandEquipment: (tag: string, cmd: 'START' | 'STOP', manualSP?: number) => void;
   setEquipmentManualSP: (tag: string, sp: number) => void;
   setChillerTempSP: (tag: string, spTemp: number) => void;
@@ -165,6 +166,18 @@ export const useB5Store = create<B5Store>((set) => ({
 
   openFaceplate: (type, targetTag, title) =>
     set((state) => {
+      // Block opening equipment control faceplates when equipment is in LOCAL mode (remote === false)
+      const isEquipmentControlFpl =
+        type === 'Fpl_VFD' ||
+        type === 'Fpl_DOL' ||
+        type === 'Fpl_CH' ||
+        type === 'Fpl_AC' ||
+        type === 'Fpl_PV' ||
+        type === 'Fpl_AHU_DewPoint' ||
+        type === 'Fpl_PAU';
+      if (isEquipmentControlFpl && state.plant.equipment[targetTag]?.remote === false) {
+        return state;
+      }
       const id = `${type}:${targetTag}`;
       const existing = state.openFaceplates.find((f) => f.id === id);
       const nextZ = state.topZIndex + 1;
@@ -214,7 +227,7 @@ export const useB5Store = create<B5Store>((set) => ({
   setEquipmentMode: (tag, mode) =>
     set((state) => {
       const u = state.plant.equipment[tag];
-      if (!u) return state;
+      if (!u || !u.remote) return state;
       return {
         plant: {
           ...state.plant,
@@ -226,10 +239,32 @@ export const useB5Store = create<B5Store>((set) => ({
       };
     }),
 
-  commandEquipment: (tag, cmd, manualSP) =>
+  setEquipmentRemote: (tag, remote) =>
     set((state) => {
       const u = state.plant.equipment[tag];
       if (!u) return state;
+      return {
+        openFaceplates: remote
+          ? state.openFaceplates
+          : state.openFaceplates.filter((f) => f.targetTag !== tag),
+        plant: {
+          ...state.plant,
+          equipment: {
+            ...state.plant.equipment,
+            [tag]: {
+              ...u,
+              remote,
+              mode: remote ? u.mode : 'MANUAL',
+            },
+          },
+        },
+      };
+    }),
+
+  commandEquipment: (tag, cmd, manualSP) =>
+    set((state) => {
+      const u = state.plant.equipment[tag];
+      if (!u || !u.remote) return state;
       const sp =
         manualSP !== undefined
           ? u.kind === 'vfd'
@@ -254,7 +289,7 @@ export const useB5Store = create<B5Store>((set) => ({
   setEquipmentManualSP: (tag, sp) =>
     set((state) => {
       const u = state.plant.equipment[tag];
-      if (!u) return state;
+      if (!u || !u.remote) return state;
       const clamped = u.kind === 'vfd' ? clamp(sp, VFD_MIN_HZ, VFD_MAX_HZ) : clamp(sp, 0, 100);
       return {
         plant: {

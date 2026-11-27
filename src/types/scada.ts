@@ -78,6 +78,7 @@ export interface EquipmentUnit {
   subsystem: B5SubsystemId;
   kind: EquipmentKind;
   mode: ControlMode;
+  remote: boolean; // PLC FB Inputs.Local (wired to *_REM): true = REMOTE (SCADA allowed), false = LOCAL (Field panel only)
   status: EquipmentStatus;
   cmdStart: boolean;
   startTimerSec: number;

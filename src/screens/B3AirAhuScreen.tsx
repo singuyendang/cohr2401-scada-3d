@@ -3,6 +3,7 @@ import { useB5Store } from '../store/b5Store.ts';
 import {
   PipeArrow,
   PipeSensorBadge,
+  SvgLocalOverlay,
   WinccPipeNetwork,
   WinccValveSymbol,
 } from '../components/scada/PidPrimitives.tsx';
@@ -102,8 +103,8 @@ export const B3AirAhuScreen: React.FC = () => {
                 <g
                   data-scada-tag={p.tag}
                   transform={`translate(${p.x - 125}, 76)`}
-                  onClick={() => openFaceplate('Fpl_AHU_DewPoint', p.tag, `Fpl_AHU_DewPoint · ${p.code}`)}
-                  className="cursor-pointer group"
+                  onClick={unit.remote === false ? undefined : () => openFaceplate('Fpl_AHU_DewPoint', p.tag, `Fpl_AHU_DewPoint · ${p.code}`)}
+                  className={unit.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
                 >
                   <rect
                     x={0}
@@ -125,6 +126,7 @@ export const B3AirAhuScreen: React.FC = () => {
                   <text x={126} y={70} textAnchor="middle" fill="#1e293b" fontSize="8" fontFamily="monospace" fontWeight="900">
                     {unit.mode === 'AUTO' ? 'AUTO' : 'MAN'}
                   </text>
+                  {unit.remote === false && <SvgLocalOverlay x={0} y={0} width={150} height={86} rx={5} />}
                 </g>
 
                 {/* Live Duct Sensors */}
@@ -238,8 +240,8 @@ export const B3AirAhuScreen: React.FC = () => {
                 <g
                   data-scada-tag={f.tag}
                   transform={`translate(${f.x - 54}, 476)`}
-                  onClick={() => openFaceplate('Fpl_DOL', f.tag, `Fpl_DOL · ${f.code}`)}
-                  className="cursor-pointer group"
+                  onClick={eq.remote === false ? undefined : () => openFaceplate('Fpl_DOL', f.tag, `Fpl_DOL · ${f.code}`)}
+                  className={eq.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
                 >
                   <rect
                     x={0}
@@ -272,6 +274,7 @@ export const B3AirAhuScreen: React.FC = () => {
                   <text x={54} y={78} textAnchor="middle" fill="#0f172a" fontSize="8" fontFamily="monospace" fontWeight="900">
                     {f.code}
                   </text>
+                  {eq.remote === false && <SvgLocalOverlay x={0} y={0} width={108} height={66} rx={4} />}
                 </g>
 
                 <PipeSensorBadge

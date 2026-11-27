@@ -1,6 +1,6 @@
 import React from 'react';
 import { useB5Store } from '../store/b5Store.ts';
-import { PipeArrow, PipeTee, WinccPipeNetwork, WinccValveSymbol } from '../components/scada/PidPrimitives.tsx';
+import { PipeArrow, PipeTee, SvgLocalOverlay, WinccPipeNetwork, WinccValveSymbol } from '../components/scada/PidPrimitives.tsx';
 import { StatusLegend } from '../components/scada/StatusLegend.tsx';
 import { IndustrialFanSvg } from '../components/scada/IndustrialFanIcon.tsx';
 
@@ -164,8 +164,8 @@ export const B3CwAhuScreen: React.FC = () => {
                 key={a.tag}
                 data-scada-tag={a.tag}
                 transform={`translate(${a.x}, 168)`}
-                onClick={() => openFaceplate('Fpl_AHU_DewPoint', a.tag, `Fpl_AHU_DewPoint · ${a.code}`)}
-                className="cursor-pointer group"
+                onClick={unit.remote === false ? undefined : () => openFaceplate('Fpl_AHU_DewPoint', a.tag, `Fpl_AHU_DewPoint · ${a.code}`)}
+                className={unit.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
               >
                 <rect
                   x={-58}
@@ -181,6 +181,7 @@ export const B3CwAhuScreen: React.FC = () => {
                 />
                 <image href="/scada/ahu.png" x={-46} y={-24} width={76} height={50} preserveAspectRatio="xMidYMid meet" />
                 <IndustrialFanSvg x={42} y={-16} radius={11.5} variant="hvac" status={unit.status} faulted={unit.faulted} isBadge />
+                {unit.remote === false && <SvgLocalOverlay x={-58} y={-30} width={116} height={62} rx={4} />}
                 <text x={0} y={44} textAnchor="middle" fill="#0f172a" fontSize="9" fontFamily="monospace" fontWeight="900">
                   {a.code} · {unit.frequencyHz.toFixed(1)} Hz
                 </text>
@@ -248,8 +249,8 @@ export const B3CwAhuScreen: React.FC = () => {
                 <g
                   data-scada-tag={f.tag}
                   transform={`translate(${f.x}, 506)`}
-                  onClick={() => openFaceplate('Fpl_DOL', f.tag, `Fpl_DOL · ${f.tag}`)}
-                  className="cursor-pointer group"
+                  onClick={eq.remote === false ? undefined : () => openFaceplate('Fpl_DOL', f.tag, `Fpl_DOL · ${f.tag}`)}
+                  className={eq.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
                 >
                   <rect
                     x={-48}
@@ -268,6 +269,7 @@ export const B3CwAhuScreen: React.FC = () => {
                   <text x={32} y={14} textAnchor="middle" fill="#0f172a" fontSize="7" fontFamily="monospace" fontWeight="900">
                     {eq.mode === 'AUTO' ? 'A' : 'M'}
                   </text>
+                  {eq.remote === false && <SvgLocalOverlay x={-48} y={-32} width={96} height={64} rx={4} />}
                   <text x={0} y={44} textAnchor="middle" fill="#0f172a" fontSize="8" fontFamily="monospace" fontWeight="900">
                     {f.code}
                   </text>

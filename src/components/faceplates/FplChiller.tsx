@@ -4,6 +4,7 @@ import { useB5Store } from '../../store/b5Store.ts';
 export const FplChiller: React.FC<{ tag: string; mode: 'control' | 'data' }> = ({ tag, mode }) => {
   const unit = useB5Store((s) => s.plant.equipment[tag]);
   const setEquipmentMode = useB5Store((s) => s.setEquipmentMode);
+  const setEquipmentRemote = useB5Store((s) => s.setEquipmentRemote);
   const commandEquipment = useB5Store((s) => s.commandEquipment);
   const setEquipmentFault = useB5Store((s) => s.setEquipmentFault);
   const clearEquipmentFault = useB5Store((s) => s.clearEquipmentFault);
@@ -11,6 +12,8 @@ export const FplChiller: React.FC<{ tag: string; mode: 'control' | 'data' }> = (
   const openFaceplate = useB5Store((s) => s.openFaceplate);
 
   if (!unit) return <div className="p-3 text-xs text-red-700 font-bold">Unknown Unit: {tag}</div>;
+
+  const isRemote = unit.remote ?? true;
 
   const isHeatFan = tag.includes('_HP');
   const isHotWater = tag === 'B51F_CH14' || isHeatFan;
@@ -98,8 +101,9 @@ export const FplChiller: React.FC<{ tag: string; mode: 'control' | 'data' }> = (
           <div className="text-[10px] text-slate-600 font-bold">Mode</div>
           <div className="mt-1 flex gap-1">
             <button
+              disabled={!isRemote}
               onClick={() => setEquipmentMode(tag, 'AUTO')}
-              className={`flex-1 py-0.5 rounded border text-[10px] font-bold cursor-pointer ${
+              className={`flex-1 py-0.5 rounded border text-[10px] font-bold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
                 unit.mode === 'AUTO'
                   ? 'bg-blue-600 border-blue-800 text-white'
                   : 'bg-slate-100 border-slate-400 text-slate-600 hover:bg-slate-200'
@@ -108,8 +112,9 @@ export const FplChiller: React.FC<{ tag: string; mode: 'control' | 'data' }> = (
               AUTO
             </button>
             <button
+              disabled={!isRemote}
               onClick={() => setEquipmentMode(tag, 'MANUAL')}
-              className={`flex-1 py-0.5 rounded border text-[10px] font-bold cursor-pointer ${
+              className={`flex-1 py-0.5 rounded border text-[10px] font-bold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
                 unit.mode === 'MANUAL'
                   ? 'bg-amber-600 border-amber-800 text-white'
                   : 'bg-slate-100 border-slate-400 text-slate-600 hover:bg-slate-200'
@@ -119,6 +124,23 @@ export const FplChiller: React.FC<{ tag: string; mode: 'control' | 'data' }> = (
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Simple 1-Click Remote / Local Toggle */}
+      <div className="flex items-center justify-between bg-white border border-slate-400 rounded px-2.5 py-1.5 shadow-xs">
+        <span className="text-[10px] text-slate-700 font-bold">Remote / Local</span>
+        <button
+          type="button"
+          onClick={() => setEquipmentRemote(tag, !isRemote)}
+          className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border text-[10px] font-black tracking-wide transition cursor-pointer ${
+            isRemote
+              ? 'bg-emerald-600 hover:bg-emerald-500 border-emerald-800 text-white'
+              : 'bg-amber-500 hover:bg-amber-400 border-amber-700 text-slate-950'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${isRemote ? 'bg-lime-200' : 'bg-slate-900'}`} />
+          {isRemote ? 'REMOTE' : 'LOCAL'}
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-2 bg-white border border-slate-400 rounded p-2 shadow-xs">
@@ -144,16 +166,16 @@ export const FplChiller: React.FC<{ tag: string; mode: 'control' | 'data' }> = (
 
       <div className="grid grid-cols-3 gap-1.5">
         <button
-          disabled={unit.mode !== 'MANUAL' || !unit.sttPerm || unit.faulted}
+          disabled={!isRemote || unit.mode !== 'MANUAL' || !unit.sttPerm || unit.faulted}
           onClick={() => commandEquipment(tag, 'START')}
-          className="py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 border border-emerald-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white font-bold cursor-pointer"
+          className="py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 border border-emerald-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white font-bold cursor-pointer disabled:cursor-not-allowed"
         >
           START
         </button>
         <button
-          disabled={unit.mode !== 'MANUAL'}
+          disabled={!isRemote || unit.mode !== 'MANUAL'}
           onClick={() => commandEquipment(tag, 'STOP')}
-          className="py-1.5 rounded bg-slate-600 hover:bg-slate-500 border border-slate-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white font-bold cursor-pointer"
+          className="py-1.5 rounded bg-slate-600 hover:bg-slate-500 border border-slate-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white font-bold cursor-pointer disabled:cursor-not-allowed"
         >
           STOP
         </button>

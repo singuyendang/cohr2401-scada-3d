@@ -70,6 +70,7 @@ function makeEq(
     subsystem,
     kind,
     mode: 'AUTO',
+    remote: true,
     status: running ? 'RUNNING' : 'STOPPED',
     cmdStart: running,
     startTimerSec: 0,

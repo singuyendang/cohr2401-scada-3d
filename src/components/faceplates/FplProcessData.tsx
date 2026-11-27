@@ -14,6 +14,7 @@ export const FplProcessData: React.FC<{
   const unit = useB5Store((s) => s.plant.equipment[tag]);
   const sensors = useB5Store((s) => s.plant.sensors);
   const setMode = useB5Store((s) => s.setEquipmentMode);
+  const setRemote = useB5Store((s) => s.setEquipmentRemote);
   const cmd = useB5Store((s) => s.commandEquipment);
   const setManualSP = useB5Store((s) => s.setEquipmentManualSP);
   const setFault = useB5Store((s) => s.setEquipmentFault);
@@ -23,6 +24,7 @@ export const FplProcessData: React.FC<{
   if (!unit) return <div className="p-3 text-xs text-red-700 font-bold">Unknown unit: {tag}</div>;
 
   const isRunning = unit.status === 'RUNNING';
+  const isRemote = unit.remote ?? true;
   const isVsd = unit.kind === 'ac_vsd';
   const isPv = unit.kind === 'pv';
 
@@ -46,7 +48,18 @@ export const FplProcessData: React.FC<{
 
         {/* Classic WinCC Status Grid (fds_img_18.png) */}
         <div className="grid grid-cols-2 gap-1.5 text-center text-[10.5px] font-black">
-          <div className="py-1 rounded bg-white border border-slate-400 text-emerald-700">Remote</div>
+          <button
+            type="button"
+            onClick={() => setRemote(tag, !isRemote)}
+            className={`py-1 rounded border cursor-pointer inline-flex items-center justify-center gap-1.5 transition ${
+              isRemote
+                ? 'bg-emerald-600 hover:bg-emerald-500 border-emerald-800 text-white'
+                : 'bg-amber-500 hover:bg-amber-400 border-amber-700 text-slate-950'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${isRemote ? 'bg-lime-200' : 'bg-slate-900'}`} />
+            {isRemote ? 'REMOTE' : 'LOCAL'}
+          </button>
           <div
             className={`py-1 rounded border ${
               unit.interlockOk
@@ -87,8 +100,9 @@ export const FplProcessData: React.FC<{
         {/* Auto / Man Toggle */}
         <div className="grid grid-cols-2 gap-2">
           <button
+            disabled={!isRemote}
             onClick={() => setMode(tag, 'AUTO')}
-            className={`py-1.5 rounded font-bold cursor-pointer border ${
+            className={`py-1.5 rounded font-bold cursor-pointer border disabled:opacity-45 disabled:cursor-not-allowed ${
               unit.mode === 'AUTO'
                 ? 'bg-blue-600 border-blue-800 text-white'
                 : 'bg-white border-slate-400 text-slate-700 hover:bg-slate-100'
@@ -97,8 +111,9 @@ export const FplProcessData: React.FC<{
             Auto
           </button>
           <button
+            disabled={!isRemote}
             onClick={() => setMode(tag, 'MANUAL')}
-            className={`py-1.5 rounded font-bold cursor-pointer border ${
+            className={`py-1.5 rounded font-bold cursor-pointer border disabled:opacity-45 disabled:cursor-not-allowed ${
               unit.mode === 'MANUAL'
                 ? 'bg-pink-600 border-pink-800 text-white'
                 : 'bg-white border-slate-400 text-slate-700 hover:bg-slate-100'
@@ -111,16 +126,16 @@ export const FplProcessData: React.FC<{
         {/* Manual Start / Stop */}
         <div className="grid grid-cols-2 gap-2">
           <button
-            disabled={unit.mode !== 'MANUAL'}
+            disabled={!isRemote || unit.mode !== 'MANUAL'}
             onClick={() => cmd(tag, 'START')}
-            className="py-1.5 rounded font-bold flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-500 border border-emerald-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white cursor-pointer"
+            className="py-1.5 rounded font-bold flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-500 border border-emerald-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white cursor-pointer disabled:cursor-not-allowed"
           >
             <Play className="w-3.5 h-3.5" /> Start
           </button>
           <button
-            disabled={unit.mode !== 'MANUAL'}
+            disabled={!isRemote || unit.mode !== 'MANUAL'}
             onClick={() => cmd(tag, 'STOP')}
-            className="py-1.5 rounded font-bold flex items-center justify-center gap-1 bg-slate-600 hover:bg-slate-500 border border-slate-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white cursor-pointer"
+            className="py-1.5 rounded font-bold flex items-center justify-center gap-1 bg-slate-600 hover:bg-slate-500 border border-slate-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white cursor-pointer disabled:cursor-not-allowed"
           >
             <Square className="w-3.5 h-3.5" /> Stop
           </button>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useB5Store } from '../store/b5Store.ts';
-import { PipeArrow, PipeTee, WinccPipeNetwork } from '../components/scada/PidPrimitives.tsx';
+import { PipeArrow, PipeTee, SvgLocalOverlay, WinccPipeNetwork } from '../components/scada/PidPrimitives.tsx';
 import { StatusLegend } from '../components/scada/StatusLegend.tsx';
 import { IndustrialFanSvg } from '../components/scada/IndustrialFanIcon.tsx';
 
@@ -108,13 +108,14 @@ export const B2AirAhuScreen: React.FC = () => {
     const sat = plant.sensors[`${pauTag}_SAT`];
     const isRun = eq.status === 'RUNNING';
     const isTransit = eq.status === 'STARTING' || eq.status === 'STOPPING';
+    const isLocal = eq.remote === false;
     return (
       <g
         key={pauTag}
         data-scada-tag={pauTag}
         transform={`translate(116, ${yPau})`}
-        onClick={() => openFaceplate('Fpl_PAU', pauTag, `Fpl_PAU · ${pauCode}`)}
-        className="cursor-pointer group"
+        onClick={isLocal ? undefined : () => openFaceplate('Fpl_PAU', pauTag, `Fpl_PAU · ${pauCode}`)}
+        className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
       >
         <rect
           x={-4}
@@ -130,6 +131,7 @@ export const B2AirAhuScreen: React.FC = () => {
         />
         <image href="/scada/pau.png" x={4} y={2} width={64} height={44} preserveAspectRatio="xMidYMid meet" />
         <IndustrialFanSvg x={71} y={8} radius={10.5} variant="hvac" status={eq.status} faulted={eq.faulted} isBadge />
+        {isLocal && <SvgLocalOverlay x={-4} y={-4} width={86} height={56} rx={4} />}
         <text x={39} y={63} textAnchor="middle" fill="#0f172a" fontSize="7.6" fontFamily="monospace" fontWeight="900">
           {pauCode} · {eq.frequencyHz.toFixed(0)}Hz
         </text>
@@ -146,6 +148,7 @@ export const B2AirAhuScreen: React.FC = () => {
     if (!eq || !cfg) return null;
     const isRun = eq.status === 'RUNNING';
     const isTransit = eq.status === 'STARTING' || eq.status === 'STOPPING';
+    const isLocal = eq.remote === false;
     const dp = plant.sensors[cfg.dewPointSensorTag];
     const rat = plant.sensors[cfg.ratSensorTag];
     const rah = plant.sensors[cfg.rahSensorTag];
@@ -156,8 +159,8 @@ export const B2AirAhuScreen: React.FC = () => {
         <g
           data-scada-tag={ahuTag}
           transform={`translate(${x - 38}, ${yAhu})`}
-          onClick={() => openFaceplate('Fpl_AHU_DewPoint', ahuTag, `Fpl_AHU_DewPoint · ${code}`)}
-          className="cursor-pointer group"
+          onClick={isLocal ? undefined : () => openFaceplate('Fpl_AHU_DewPoint', ahuTag, `Fpl_AHU_DewPoint · ${code}`)}
+          className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
         >
           <rect
             x={-4}
@@ -173,6 +176,7 @@ export const B2AirAhuScreen: React.FC = () => {
           />
           <image href="/scada/ahu.png" x={4} y={2} width={62} height={42} preserveAspectRatio="xMidYMid meet" />
           <IndustrialFanSvg x={69} y={8} radius={10.5} variant="hvac" status={eq.status} faulted={eq.faulted} isBadge />
+          {isLocal && <SvgLocalOverlay x={-4} y={-4} width={84} height={54} rx={4} />}
           <text x={38} y={60} textAnchor="middle" fill="#0f172a" fontSize="7.4" fontFamily="monospace" fontWeight="900">
             {code} · {eq.frequencyHz.toFixed(0)}Hz
           </text>
@@ -359,13 +363,14 @@ export const B2AirAhuScreen: React.FC = () => {
             const eq = plant.equipment[f.tag];
             const isRun = eq.status === 'RUNNING';
             const isTransit = eq.status === 'STARTING' || eq.status === 'STOPPING';
+            const isLocal = eq.remote === false;
             return (
               <g
                 key={f.tag}
                 data-scada-tag={f.tag}
                 transform={`translate(${f.x}, 652)`}
-                onClick={() => openFaceplate('Fpl_VFD', f.tag, `Fpl_VFD · ${f.tag}`)}
-                className="cursor-pointer group"
+                onClick={isLocal ? undefined : () => openFaceplate('Fpl_VFD', f.tag, `Fpl_VFD · ${f.tag}`)}
+                className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
               >
                 <rect
                   x={0}
@@ -390,6 +395,7 @@ export const B2AirAhuScreen: React.FC = () => {
                 <text x={60} y={52} fill="#334155" fontSize="7.5" fontFamily="monospace" fontWeight="700">
                   Mode: {eq.mode}
                 </text>
+                {isLocal && <SvgLocalOverlay x={0} y={0} width={168} height={62} rx={4} />}
               </g>
             );
           })}

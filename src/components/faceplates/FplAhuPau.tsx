@@ -14,6 +14,7 @@ export const FplAhuPau: React.FC<{ ahuTag: string }> = ({ ahuTag }) => {
   const sensors = useB5Store((s) => s.plant.sensors);
   const valves = useB5Store((s) => s.plant.valves);
   const setEquipmentMode = useB5Store((s) => s.setEquipmentMode);
+  const setEquipmentRemote = useB5Store((s) => s.setEquipmentRemote);
   const commandEquipment = useB5Store((s) => s.commandEquipment);
   const setEquipmentManualSP = useB5Store((s) => s.setEquipmentManualSP);
   const setEquipmentFault = useB5Store((s) => s.setEquipmentFault);
@@ -24,6 +25,7 @@ export const FplAhuPau: React.FC<{ ahuTag: string }> = ({ ahuTag }) => {
   if (!cfg || !unit) return <div className="p-3 text-xs text-red-700 font-bold">Unknown AHU/PAU: {ahuTag}</div>;
 
   const isPau = ahuTag.includes('PAU');
+  const isRemote = unit.remote ?? true;
   const cwValve = valves[cfg.cwValveTag];
   const hwValve = cfg.hwValveTag ? valves[cfg.hwValveTag] : undefined;
   const sat = sensors[cfg.satSensorTag];
@@ -199,18 +201,35 @@ export const FplAhuPau: React.FC<{ ahuTag: string }> = ({ ahuTag }) => {
 
       {/* Mode & Fan VFD Controls */}
       <div className="bg-white border border-slate-400 rounded p-2 space-y-2">
+        <div className="flex items-center justify-between text-[10px]">
+          <span className="font-bold text-slate-700">Remote / Local</span>
+          <button
+            type="button"
+            onClick={() => setEquipmentRemote(ahuTag, !isRemote)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-black border transition cursor-pointer ${
+              isRemote
+                ? 'bg-emerald-600 hover:bg-emerald-500 border-emerald-800 text-white'
+                : 'bg-amber-500 hover:bg-amber-400 border-amber-700 text-slate-950'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${isRemote ? 'bg-lime-200' : 'bg-slate-900'}`} />
+            {isRemote ? 'REMOTE' : 'LOCAL'}
+          </button>
+        </div>
         <div className="grid grid-cols-2 gap-1.5">
           <button
+            disabled={!isRemote}
             onClick={() => setEquipmentMode(ahuTag, 'AUTO')}
-            className={`py-1 rounded border font-bold cursor-pointer ${
+            className={`py-1 rounded border font-bold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
               unit.mode === 'AUTO' ? 'bg-blue-600 border-blue-800 text-white' : 'bg-slate-100 border-slate-400 text-slate-600'
             }`}
           >
             AUTO
           </button>
           <button
+            disabled={!isRemote}
             onClick={() => setEquipmentMode(ahuTag, 'MANUAL')}
-            className={`py-1 rounded border font-bold cursor-pointer ${
+            className={`py-1 rounded border font-bold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
               unit.mode === 'MANUAL' ? 'bg-amber-600 border-amber-800 text-white' : 'bg-slate-100 border-slate-400 text-slate-600'
             }`}
           >
@@ -238,16 +257,16 @@ export const FplAhuPau: React.FC<{ ahuTag: string }> = ({ ahuTag }) => {
 
         <div className="grid grid-cols-3 gap-1.5">
           <button
-            disabled={unit.mode !== 'MANUAL' || unit.faulted}
+            disabled={!isRemote || unit.mode !== 'MANUAL' || unit.faulted}
             onClick={() => commandEquipment(ahuTag, 'START')}
-            className="py-1 rounded bg-emerald-600 hover:bg-emerald-500 border border-emerald-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold cursor-pointer"
+            className="py-1 rounded bg-emerald-600 hover:bg-emerald-500 border border-emerald-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold cursor-pointer disabled:cursor-not-allowed"
           >
             START
           </button>
           <button
-            disabled={unit.mode !== 'MANUAL'}
+            disabled={!isRemote || unit.mode !== 'MANUAL'}
             onClick={() => commandEquipment(ahuTag, 'STOP')}
-            className="py-1 rounded bg-slate-600 hover:bg-slate-500 border border-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold cursor-pointer"
+            className="py-1 rounded bg-slate-600 hover:bg-slate-500 border border-slate-800 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold cursor-pointer disabled:cursor-not-allowed"
           >
             STOP
           </button>

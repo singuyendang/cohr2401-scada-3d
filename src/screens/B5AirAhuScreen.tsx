@@ -3,6 +3,7 @@ import { useB5Store } from '../store/b5Store.ts';
 import {
   PipeArrow,
   PipeTee,
+  SvgLocalOverlay,
   WinccPipeNetwork,
 } from '../components/scada/PidPrimitives.tsx';
 import { StatusLegend } from '../components/scada/StatusLegend.tsx';
@@ -173,13 +174,18 @@ export const B5AirAhuScreen: React.FC = () => {
             const eq = plant.equipment[u.tag];
             const isRun = eq.status === 'RUNNING';
             const isTransit = eq.status === 'STARTING' || eq.status === 'STOPPING';
+            const isLocal = eq.remote === false;
             return (
               <g
                 key={u.tag}
                 data-scada-tag={u.tag}
                 transform={`translate(${u.x}, ${u.y})`}
-                onClick={() => openFaceplate(u.isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint', u.tag, `${u.isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint'} · ${u.code}`)}
-                className="cursor-pointer group"
+                onClick={
+                  isLocal
+                    ? undefined
+                    : () => openFaceplate(u.isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint', u.tag, `${u.isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint'} · ${u.code}`)
+                }
+                className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
               >
                 <rect
                   x={-4}
@@ -198,6 +204,7 @@ export const B5AirAhuScreen: React.FC = () => {
                 <text x={34} y={62} textAnchor="middle" fill="#0f172a" fontSize="7.5" fontFamily="monospace" fontWeight="900">
                   {u.code} · {eq.frequencyHz.toFixed(0)}Hz
                 </text>
+                {isLocal && <SvgLocalOverlay x={-4} y={-4} width={76} height={56} rx={4} />}
               </g>
             );
           })}

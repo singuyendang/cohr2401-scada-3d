@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useB5Store } from '../store/b5Store.ts';
 import {
+  HtmlLocalOverlay,
   PidIconButton,
   PipeArrow,
   PipeSensorBadge,
+  SvgLocalOverlay,
   WinccPipeNetwork,
 } from '../components/scada/PidPrimitives.tsx';
 import { StatusLegend } from '../components/scada/StatusLegend.tsx';
@@ -187,14 +189,17 @@ export const B3ExhaustScreen: React.FC = () => {
                   <g transform={`translate(936, ${line.y})`}>
                     <g
                       data-scada-tag={line.fanTag}
-                      onClick={() =>
-                        openFaceplate(
-                          line.isVfd ? 'Fpl_VFD' : 'Fpl_DOL',
-                          line.fanTag,
-                          `${line.isVfd ? 'Fpl_VFD' : 'Fpl_DOL'} · ${line.fanTag}`
-                        )
+                      onClick={
+                        unit.remote === false
+                          ? undefined
+                          : () =>
+                              openFaceplate(
+                                line.isVfd ? 'Fpl_VFD' : 'Fpl_DOL',
+                                line.fanTag,
+                                `${line.isVfd ? 'Fpl_VFD' : 'Fpl_DOL'} · ${line.fanTag}`
+                              )
                       }
-                      className="cursor-pointer group"
+                      className={unit.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
                     >
                       <text x={0} y={-28} textAnchor="middle" fill="#0f172a" fontSize="9.5" fontFamily="monospace" fontWeight="900">
                         {line.short}
@@ -236,6 +241,7 @@ export const B3ExhaustScreen: React.FC = () => {
                           </text>
                         )}
                       </g>
+                      {unit.remote === false && <SvgLocalOverlay x={-40} y={-23} width={82} height={63} rx={4} />}
                     </g>
 
                     {line.isVfd && line.pidTag && (
@@ -264,12 +270,15 @@ export const B3ExhaustScreen: React.FC = () => {
                   const u = plant.equipment[tag];
                   const isRun = u.status === 'RUNNING';
                   const isTransit = u.status === 'STARTING' || u.status === 'STOPPING';
+                  const isLocal = u.remote === false;
                   return (
                     <button
                       key={tag}
                       data-scada-tag={tag}
-                      onClick={() => openFaceplate('Fpl_DOL', tag, `Fpl_DOL · ${u.label}`)}
-                      className={`flex items-center gap-3 p-2.5 rounded border-2 text-left cursor-pointer transition shadow-2xs ${
+                      onClick={isLocal ? undefined : () => openFaceplate('Fpl_DOL', tag, `Fpl_DOL · ${u.label}`)}
+                      className={`relative flex items-center gap-3 p-2.5 rounded border-2 text-left transition shadow-2xs ${
+                        isLocal ? 'cursor-not-allowed' : 'cursor-pointer'
+                      } ${
                         u.faulted
                           ? 'bg-red-100 border-red-600 animate-alarm-flash'
                           : isRun
@@ -279,6 +288,7 @@ export const B3ExhaustScreen: React.FC = () => {
                           : 'bg-white border-slate-500 hover:bg-slate-100'
                       }`}
                     >
+                      {isLocal && <HtmlLocalOverlay size="md" />}
                       <IndustrialFanTileIcon variant="exhaust" status={u.status} faulted={u.faulted} className="w-11 h-11 shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-black text-slate-950 truncate">{tag}</div>

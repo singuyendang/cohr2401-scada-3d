@@ -5,6 +5,7 @@ import { VFD_MIN_HZ, VFD_MAX_HZ } from '../../simulation/pid.ts';
 export const FplVfdDol: React.FC<{ tag: string }> = ({ tag }) => {
   const unit = useB5Store((s) => s.plant.equipment[tag]);
   const setEquipmentMode = useB5Store((s) => s.setEquipmentMode);
+  const setEquipmentRemote = useB5Store((s) => s.setEquipmentRemote);
   const commandEquipment = useB5Store((s) => s.commandEquipment);
   const setEquipmentManualSP = useB5Store((s) => s.setEquipmentManualSP);
   const setEquipmentFault = useB5Store((s) => s.setEquipmentFault);
@@ -13,6 +14,7 @@ export const FplVfdDol: React.FC<{ tag: string }> = ({ tag }) => {
   if (!unit) return <div className="p-3 text-xs text-red-700 font-bold">Unknown tag: {tag}</div>;
 
   const isVfd = unit.kind === 'vfd';
+  const isRemote = unit.remote ?? true;
   const statusBadge =
     unit.status === 'RUNNING'
       ? 'bg-emerald-100 text-emerald-800 border-emerald-600'
@@ -36,8 +38,10 @@ export const FplVfdDol: React.FC<{ tag: string }> = ({ tag }) => {
           <div className="text-[10px] text-slate-600 font-bold">Control Mode</div>
           <div className="mt-1 flex gap-1">
             <button
+              disabled={!isRemote}
+              title={!isRemote ? 'Blocked: Equipment is in LOCAL (PLC REM = 0)' : 'Switch to AUTO'}
               onClick={() => setEquipmentMode(tag, 'AUTO')}
-              className={`flex-1 py-0.5 rounded border text-[10px] font-bold cursor-pointer ${
+              className={`flex-1 py-0.5 rounded border text-[10px] font-bold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
                 unit.mode === 'AUTO'
                   ? 'bg-blue-600 border-blue-800 text-white shadow-xs'
                   : 'bg-slate-100 border-slate-400 text-slate-600 hover:bg-slate-200'
@@ -46,8 +50,10 @@ export const FplVfdDol: React.FC<{ tag: string }> = ({ tag }) => {
               AUTO
             </button>
             <button
+              disabled={!isRemote}
+              title={!isRemote ? 'Blocked: Equipment is in LOCAL (PLC REM = 0)' : 'Switch to MANUAL'}
               onClick={() => setEquipmentMode(tag, 'MANUAL')}
-              className={`flex-1 py-0.5 rounded border text-[10px] font-bold cursor-pointer ${
+              className={`flex-1 py-0.5 rounded border text-[10px] font-bold cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
                 unit.mode === 'MANUAL'
                   ? 'bg-amber-600 border-amber-800 text-white shadow-xs'
                   : 'bg-slate-100 border-slate-400 text-slate-600 hover:bg-slate-200'
@@ -57,6 +63,23 @@ export const FplVfdDol: React.FC<{ tag: string }> = ({ tag }) => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Simple 1-Click Remote / Local Toggle */}
+      <div className="flex items-center justify-between bg-white border border-slate-400 rounded px-2.5 py-1.5 shadow-xs">
+        <span className="text-[10px] text-slate-700 font-bold">Remote / Local</span>
+        <button
+          type="button"
+          onClick={() => setEquipmentRemote(tag, !isRemote)}
+          className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border text-[10px] font-black tracking-wide transition cursor-pointer ${
+            isRemote
+              ? 'bg-emerald-600 hover:bg-emerald-500 border-emerald-800 text-white'
+              : 'bg-amber-500 hover:bg-amber-400 border-amber-700 text-slate-950'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${isRemote ? 'bg-lime-200' : 'bg-slate-900'}`} />
+          {isRemote ? 'REMOTE' : 'LOCAL'}
+        </button>
       </div>
 
       {/* Live VFD Frequency & Run Hours */}
@@ -123,14 +146,16 @@ export const FplVfdDol: React.FC<{ tag: string }> = ({ tag }) => {
       {/* Manual Start / Stop / Clear Fault */}
       <div className="grid grid-cols-3 gap-1.5">
         <button
-          disabled={unit.mode !== 'MANUAL' || !unit.interlockOk || unit.faulted}
+          disabled={!isRemote || unit.mode !== 'MANUAL' || !unit.interlockOk || unit.faulted}
+          title={!isRemote ? 'Blocked: LOCAL mode (REM = 0)' : undefined}
           onClick={() => commandEquipment(tag, 'START')}
           className="py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 border border-emerald-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white font-bold cursor-pointer disabled:cursor-not-allowed"
         >
           START
         </button>
         <button
-          disabled={unit.mode !== 'MANUAL'}
+          disabled={!isRemote || unit.mode !== 'MANUAL'}
+          title={!isRemote ? 'Blocked: LOCAL mode (REM = 0)' : undefined}
           onClick={() => commandEquipment(tag, 'STOP')}
           className="py-1.5 rounded bg-slate-600 hover:bg-slate-500 border border-slate-800 disabled:bg-slate-300 disabled:border-slate-400 disabled:text-slate-500 text-white font-bold cursor-pointer disabled:cursor-not-allowed"
         >

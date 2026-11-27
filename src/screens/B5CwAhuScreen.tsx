@@ -3,6 +3,7 @@ import { useB5Store } from '../store/b5Store.ts';
 import {
   PipeArrow,
   PipeTee,
+  SvgLocalOverlay,
   WinccPipeNetwork,
 } from '../components/scada/PidPrimitives.tsx';
 import { StatusLegend } from '../components/scada/StatusLegend.tsx';
@@ -50,14 +51,19 @@ export const B5CwAhuScreen: React.FC = () => {
     const hwV = cfg.hwValveTag ? plant.valves[cfg.hwValveTag] : undefined;
     const isRun = unit.status === 'RUNNING';
     const isTransit = unit.status === 'STARTING' || unit.status === 'STOPPING';
+    const isLocal = unit.remote === false;
 
     return (
       <g
         key={tag}
         data-scada-tag={tag}
         transform={`translate(${x}, ${y})`}
-        onClick={() => openFaceplate(isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint', tag, `${isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint'} · ${code}`)}
-        className="cursor-pointer group"
+        onClick={
+          isLocal
+            ? undefined
+            : () => openFaceplate(isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint', tag, `${isPau ? 'Fpl_PAU' : 'Fpl_AHU_DewPoint'} · ${code}`)
+        }
+        className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
       >
         {/* Status halo behind authentic WinCC image */}
         <rect
@@ -75,6 +81,7 @@ export const B5CwAhuScreen: React.FC = () => {
         <image href={isPau ? '/scada/pau.png' : '/scada/ahu.png'} x={-32} y={-24} width={64} height={46} preserveAspectRatio="xMidYMid meet" />
         {/* Industrial 6-Blade HVAC Fan Status Badge (1.5s RUN / 3.2s Blue START-STOP) */}
         <IndustrialFanSvg x={26} y={-18} radius={10.5} variant="hvac" status={unit.status} faulted={unit.faulted} isBadge />
+        {isLocal && <SvgLocalOverlay x={-36} y={-28} width={72} height={54} rx={4} />}
         <text x={0} y={36} textAnchor="middle" fill="#0f172a" fontSize="8" fontFamily="monospace" fontWeight="900">
           {code}
         </text>

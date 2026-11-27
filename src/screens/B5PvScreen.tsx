@@ -4,6 +4,7 @@ import {
   PipeArrow,
   PipeSensorBadge,
   PipeTee,
+  SvgLocalOverlay,
   WinccPipeNetwork,
 } from '../components/scada/PidPrimitives.tsx';
 import { StatusLegend } from '../components/scada/StatusLegend.tsx';
@@ -203,8 +204,8 @@ export const B5PvScreen: React.FC = () => {
               <g key={unit.tag} transform={`translate(756, ${y})`}>
                 <g
                   data-scada-tag={unit.tag}
-                  onClick={() => openFaceplate('Fpl_PV', unit.tag, `Fpl_PV · ${unit.tag} (${code})`)}
-                  className="cursor-pointer group"
+                  onClick={unit.remote === false ? undefined : () => openFaceplate('Fpl_PV', unit.tag, `Fpl_PV · ${unit.tag} (${code})`)}
+                  className={unit.remote === false ? 'cursor-not-allowed' : 'cursor-pointer group'}
                 >
                   <rect
                     x={-4}
@@ -230,6 +231,7 @@ export const B5PvScreen: React.FC = () => {
                   <text x={40} y={41} textAnchor="middle" fill="#0f172a" fontSize="9.5" fontFamily="monospace" fontWeight="900">
                     {code} · {unit.loadPct.toFixed(0)}%
                   </text>
+                  {unit.remote === false && <SvgLocalOverlay x={-4} y={-30} width={88} height={60} rx={4} />}
                 </g>
 
                 {/* DATA Button -> Fpl_PVData */}

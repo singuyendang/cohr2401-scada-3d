@@ -407,6 +407,7 @@ export const SandboxDrawer: React.FC = () => {
   const setSensorOverride = useB5Store((s) => s.setSensorOverride);
   const setSensorFault = useB5Store((s) => s.setSensorFault);
   const setEquipmentFault = useB5Store((s) => s.setEquipmentFault);
+  const setEquipmentRemote = useB5Store((s) => s.setEquipmentRemote);
   const clearAllFaults = useB5Store((s) => s.clearAllFaults);
 
   const [selectedSensorTag, setSelectedSensorTag] = useState('B51F_CHWPS1');
@@ -601,16 +602,29 @@ export const SandboxDrawer: React.FC = () => {
               ))}
             </select>
             {eq && (
-              <button
-                onClick={() => setEquipmentFault(eq.tag, !eq.faulted)}
-                className={`px-2.5 py-1 rounded text-xs font-bold border cursor-pointer ${
-                  eq.faulted
-                    ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300'
-                    : 'bg-red-600/25 border-red-500 text-red-200'
-                }`}
-              >
-                {eq.faulted ? 'Clear' : 'Trip'}
-              </button>
+              <>
+                <button
+                  onClick={() => setEquipmentRemote(eq.tag, !(eq.remote ?? true))}
+                  title="Toggle Remote / Local field switch"
+                  className={`px-2 py-1 rounded text-[10.5px] font-bold border cursor-pointer ${
+                    eq.remote === false
+                      ? 'bg-amber-500 border-amber-300 text-slate-950'
+                      : 'bg-emerald-600/20 border-emerald-500 text-emerald-300'
+                  }`}
+                >
+                  {eq.remote === false ? 'Local' : 'Rem'}
+                </button>
+                <button
+                  onClick={() => setEquipmentFault(eq.tag, !eq.faulted)}
+                  className={`px-2.5 py-1 rounded text-xs font-bold border cursor-pointer ${
+                    eq.faulted
+                      ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300'
+                      : 'bg-red-600/25 border-red-500 text-red-200'
+                  }`}
+                >
+                  {eq.faulted ? 'Clear' : 'Trip'}
+                </button>
+              </>
             )}
           </div>
 
@@ -694,6 +708,49 @@ export const SandboxDrawer: React.FC = () => {
               </div>
             )}
           </div>
+        </section>
+
+        {/* 5. Field Remote / Local Selector Switch */}
+        <section className="space-y-2.5 bg-[#0a1322] border border-[#1e3252] rounded p-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[11px] font-mono font-bold uppercase text-amber-300">
+              5. Field Remote / Local
+            </h3>
+            <button
+              onClick={() => {
+                for (const u of Object.values(equipment)) {
+                  if (u.remote === false) setEquipmentRemote(u.tag, true);
+                }
+              }}
+              className="text-[10px] px-2 py-0.5 rounded bg-emerald-600/20 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-600/30 cursor-pointer"
+            >
+              All Remote
+            </button>
+          </div>
+
+          {pagePreset.equipment.length > 0 && (
+            <div className="grid grid-cols-3 gap-1.5">
+              {pagePreset.equipment.map((tag) => {
+                const u = equipment[tag];
+                if (!u) return null;
+                const isLocal = u.remote === false;
+                return (
+                  <button
+                    key={`rem-${tag}`}
+                    onClick={() => setEquipmentRemote(tag, isLocal)}
+                    title={`${tag} · ${isLocal ? 'LOCAL (Click -> Remote)' : 'REMOTE (Click -> Local)'}`}
+                    className={`px-1.5 py-1 rounded text-[10px] font-mono border truncate cursor-pointer transition ${
+                      isLocal
+                        ? 'bg-amber-500 border-amber-300 text-slate-950 font-black'
+                        : 'bg-[#112038] border-[#253c61] text-slate-300 hover:border-amber-400'
+                    }`}
+                  >
+                    {tag.replace(/^B[235][0-9M]{1,2}F_/, '')}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </section>
       </div>
     </aside>

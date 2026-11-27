@@ -6,6 +6,7 @@ import {
   PipeArrow,
   PipeSensorBadge,
   PipeTee,
+  SvgLocalOverlay,
   WinccPipeNetwork,
   WinccPumpSymbol,
   WinccValveSymbol,
@@ -28,6 +29,7 @@ const HeatFanUnitSymbol: React.FC<{
 }> = ({ x, y, unit, shortName, onClick }) => {
   const isRun = unit.status === 'RUNNING';
   const isTransit = unit.status === 'STARTING' || unit.status === 'STOPPING';
+  const isLocal = unit.remote === false;
   const strokeCol = unit.faulted ? '#dc2626' : isRun ? '#16a34a' : isTransit ? '#2563eb' : '#334155';
   const badgeBg = unit.faulted ? '#dc2626' : isRun ? '#16a34a' : isTransit ? '#2563eb' : '#64748b';
 
@@ -35,8 +37,8 @@ const HeatFanUnitSymbol: React.FC<{
     <g
       data-scada-tag={unit.tag}
       transform={`translate(${x}, ${y})`}
-      onClick={onClick}
-      className="cursor-pointer group"
+      onClick={isLocal ? undefined : onClick}
+      className={isLocal ? 'cursor-not-allowed' : 'cursor-pointer group'}
     >
       {/* Heavy skid base */}
       <rect x={4} y={96} width={186} height={8} rx={2} fill="#334155" stroke="#0f172a" strokeWidth={1.2} />
@@ -88,6 +90,7 @@ const HeatFanUnitSymbol: React.FC<{
           {shortName} · SP {(unit.telemetry.spTemp ?? 45).toFixed(0)}°C
         </text>
       </g>
+      {isLocal && <SvgLocalOverlay x={10} y={10} width={174} height={86} rx={4} />}
     </g>
   );
 };
